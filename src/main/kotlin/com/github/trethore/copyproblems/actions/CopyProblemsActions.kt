@@ -35,6 +35,7 @@ abstract class CopyProblemsAction : DumbAwareAction() {
             project = project,
             codeAnalysisView = event.getData(InspectionResultsView.DATA_KEY),
             contextComponent = event.getData(PlatformCoreDataKeys.CONTEXT_COMPONENT),
+            selectedItems = event.getData(PlatformCoreDataKeys.SELECTED_ITEMS).orEmpty(),
         )
 }
 

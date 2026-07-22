@@ -3,6 +3,7 @@ package com.github.trethore.copyproblems.problems;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.codeInspection.CommonProblemDescriptor;
 import com.intellij.codeInspection.reference.RefEntity;
+import com.intellij.codeInspection.ui.InspectionResultsView;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -20,7 +21,9 @@ import javax.swing.tree.TreePath;
  */
 final class CodeAnalysisViewBridge {
     private static final Class<?> PROBLEM_NODE_TYPE = loadProblemNodeType();
-    private static final Method GET_CHILDREN = loadMethod(PROBLEM_NODE_TYPE.getSuperclass(), "getChildren");
+    private static final Class<?> TREE_NODE_TYPE = PROBLEM_NODE_TYPE.getSuperclass().getSuperclass();
+    private static final Method GET_CHILDREN = loadMethod(TREE_NODE_TYPE, "getChildren");
+    private static final Method GET_PARENT = loadMethod(TREE_NODE_TYPE, "getParent");
     private static final Method GET_DESCRIPTOR = loadMethod(PROBLEM_NODE_TYPE, "getDescriptor");
     private static final Method GET_ELEMENT = loadMethod(PROBLEM_NODE_TYPE, "getElement");
     private static final Method GET_PRESENTABLE_TEXT = loadMethod(PROBLEM_NODE_TYPE.getSuperclass(), "getPresentableText");
@@ -32,7 +35,7 @@ final class CodeAnalysisViewBridge {
     static Object findSource(Component component) {
         JTree tree = null;
         for (Component current = component; current != null; current = current.getParent()) {
-            if (current.getClass().getName().equals("com.intellij.codeInspection.ui.InspectionResultsView")) {
+            if (current instanceof InspectionResultsView) {
                 return current;
             }
             if (tree == null && current instanceof JTree currentTree) {
@@ -68,6 +71,19 @@ final class CodeAnalysisViewBridge {
         return tree == null ? null : tree.getModel().getRoot();
     }
 
+    static Object rootFrom(Object node) {
+        if (!isTreeNode(node)) {
+            return null;
+        }
+
+        Object root = node;
+        Object parent;
+        while ((parent = invoke(GET_PARENT, root)) != null) {
+            root = parent;
+        }
+        return root;
+    }
+
     static List<Object> children(Object node) {
         Object children = invoke(GET_CHILDREN, node);
         if (!(children instanceof Collection<?> collection)) {
@@ -81,6 +97,10 @@ final class CodeAnalysisViewBridge {
 
     static boolean isProblemNode(Object node) {
         return PROBLEM_NODE_TYPE.isInstance(node);
+    }
+
+    static boolean isTreeNode(Object node) {
+        return TREE_NODE_TYPE.isInstance(node);
     }
 
     static CommonProblemDescriptor descriptor(Object node) {

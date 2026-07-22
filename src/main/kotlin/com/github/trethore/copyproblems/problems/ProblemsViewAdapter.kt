@@ -20,16 +20,23 @@ class ProblemsViewAdapter(
     private val project: Project,
     codeAnalysisView: Any? = null,
     contextComponent: Component? = null,
+    selectedItems: Array<out Any> = emptyArray(),
 ) {
     private val codeAnalysisView = codeAnalysisView
         ?: contextComponent?.let(CodeAnalysisViewBridge::findSource)
+    private val codeAnalysisSelection = selectedItems
+        .filter(CodeAnalysisViewBridge::isTreeNode)
+        .ifEmpty {
+            codeAnalysisView?.let(CodeAnalysisViewBridge::selectedNodes).orEmpty()
+        }
+    private val isCodeAnalysis = codeAnalysisView != null || codeAnalysisSelection.isNotEmpty()
 
     private val panel
         get() = ProblemsView.getSelectedPanel(project)
 
     fun selectedProblem(): List<CopyableProblem> {
-        codeAnalysisView?.let { view ->
-            return CodeAnalysisViewBridge.selectedNodes(view)
+        if (isCodeAnalysis) {
+            return codeAnalysisSelection
                 .filter(CodeAnalysisViewBridge::isProblemNode)
                 .map(::toCodeAnalysisProblem)
         }
@@ -42,18 +49,18 @@ class ProblemsViewAdapter(
     }
 
     fun problemsInSelection(): List<CopyableProblem> {
-        codeAnalysisView?.let { view ->
-            return collectCodeAnalysis(CodeAnalysisViewBridge.selectedNodes(view))
+        if (isCodeAnalysis) {
+            return collectCodeAnalysis(codeAnalysisSelection)
         }
 
         return collect(panel?.tree?.selectionPaths.orEmpty().mapNotNull(::nodeFrom))
     }
 
     fun allVisibleProblems(): List<CopyableProblem> {
-        codeAnalysisView?.let {
-            return CodeAnalysisViewBridge.root(it)?.let { root ->
-                collectCodeAnalysis(listOf(root))
-            }.orEmpty()
+        if (isCodeAnalysis) {
+            val root = codeAnalysisView?.let(CodeAnalysisViewBridge::root)
+                ?: codeAnalysisSelection.firstOrNull()?.let(CodeAnalysisViewBridge::rootFrom)
+            return root?.let { collectCodeAnalysis(listOf(it)) }.orEmpty()
         }
 
         val root = panel?.treeModel?.root ?: return emptyList()
