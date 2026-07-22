@@ -8,7 +8,6 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.openapi.project.DumbAwareAction
-import java.awt.datatransfer.StringSelection
 
 abstract class CopyProblemsAction : DumbAwareAction() {
     protected abstract fun problems(adapter: ProblemsViewAdapter): List<CopyableProblem>
@@ -25,7 +24,7 @@ abstract class CopyProblemsAction : DumbAwareAction() {
         val project = event.project ?: return
         val text = ProblemFormatter.format(problems(ProblemsViewAdapter(project)))
         if (text.isNotEmpty()) {
-            CopyPasteManager.getInstance().setContents(StringSelection(text))
+            CopyPasteManager.copyTextToClipboard(text)
         }
     }
 }
