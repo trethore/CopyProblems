@@ -13,12 +13,17 @@ import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
+import java.awt.Component
 import javax.swing.tree.TreePath
 
 class ProblemsViewAdapter(
     private val project: Project,
-    private val codeAnalysisView: Any? = null,
+    codeAnalysisView: Any? = null,
+    contextComponent: Component? = null,
 ) {
+    private val codeAnalysisView = codeAnalysisView
+        ?: contextComponent?.let(CodeAnalysisViewBridge::findSource)
+
     private val panel
         get() = ProblemsView.getSelectedPanel(project)
 

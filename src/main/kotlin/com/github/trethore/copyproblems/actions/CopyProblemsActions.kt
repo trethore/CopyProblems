@@ -7,6 +7,7 @@ import com.github.trethore.copyproblems.settings.CopyProblemsSettings
 import com.intellij.codeInspection.ui.InspectionResultsView
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.openapi.project.DumbAwareAction
 
@@ -30,7 +31,11 @@ abstract class CopyProblemsAction : DumbAwareAction() {
     }
 
     private fun adapter(event: AnActionEvent, project: com.intellij.openapi.project.Project) =
-        ProblemsViewAdapter(project, event.getData(InspectionResultsView.DATA_KEY))
+        ProblemsViewAdapter(
+            project = project,
+            codeAnalysisView = event.getData(InspectionResultsView.DATA_KEY),
+            contextComponent = event.getData(PlatformCoreDataKeys.CONTEXT_COMPONENT),
+        )
 }
 
 class CopyProblemAction : CopyProblemsAction() {

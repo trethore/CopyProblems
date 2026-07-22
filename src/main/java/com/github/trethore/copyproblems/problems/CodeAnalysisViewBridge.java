@@ -6,6 +6,7 @@ import com.intellij.codeInspection.reference.RefEntity;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.awt.Component;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -26,6 +27,26 @@ final class CodeAnalysisViewBridge {
     private static final Field LEVEL_FIELD = loadLevelField();
 
     private CodeAnalysisViewBridge() {
+    }
+
+    static Object findSource(Component component) {
+        JTree tree = null;
+        for (Component current = component; current != null; current = current.getParent()) {
+            if (current.getClass().getName().equals("com.intellij.codeInspection.ui.InspectionResultsView")) {
+                return current;
+            }
+            if (tree == null && current instanceof JTree currentTree) {
+                tree = currentTree;
+            }
+        }
+
+        if (tree != null) {
+            Object root = tree.getModel().getRoot();
+            if (root != null && root.getClass().getName().startsWith("com.intellij.codeInspection.ui.")) {
+                return tree;
+            }
+        }
+        return null;
     }
 
     static List<Object> selectedNodes(Object view) {
@@ -95,6 +116,9 @@ final class CodeAnalysisViewBridge {
     }
 
     private static JTree tree(Object view) {
+        if (view instanceof JTree tree) {
+            return tree;
+        }
         if (view == null) {
             return null;
         }
