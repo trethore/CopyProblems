@@ -32,6 +32,7 @@
                     class="com.github.trethore.copyproblems.actions.CopyMinimumSeverityAction"
                     text="Copy Problems at Minimum Severity"/>
             <add-to-group group-id="ProblemsView.ToolWindow.TreePopup" anchor="last"/>
+            <add-to-group group-id="ProblemsView.Frontend.TreePopup" anchor="last"/>
         </group>
     </actions>
 </idea-plugin>
