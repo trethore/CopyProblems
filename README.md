@@ -1,6 +1,6 @@
 # CopyProblems
 
-An IntelliJ plugin that copies problems to the clipboard.
+An IntelliJ plugin that copies problems from the Problems and Code Analysis tool windows to the clipboard.
 
 ## Installation
 

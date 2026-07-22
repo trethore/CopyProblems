@@ -4,6 +4,7 @@ import com.github.trethore.copyproblems.problems.CopyableProblem
 import com.github.trethore.copyproblems.problems.ProblemFormatter
 import com.github.trethore.copyproblems.problems.ProblemsViewAdapter
 import com.github.trethore.copyproblems.settings.CopyProblemsSettings
+import com.intellij.codeInspection.ui.InspectionResultsView
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.ide.CopyPasteManager
@@ -16,17 +17,20 @@ abstract class CopyProblemsAction : DumbAwareAction() {
 
     override fun update(event: AnActionEvent) {
         val project = event.project
-        val available = project != null && problems(ProblemsViewAdapter(project)).isNotEmpty()
+        val available = project != null && problems(adapter(event, project)).isNotEmpty()
         event.presentation.isEnabledAndVisible = available
     }
 
     override fun actionPerformed(event: AnActionEvent) {
         val project = event.project ?: return
-        val text = ProblemFormatter.format(problems(ProblemsViewAdapter(project)))
+        val text = ProblemFormatter.format(problems(adapter(event, project)))
         if (text.isNotEmpty()) {
             CopyPasteManager.copyTextToClipboard(text)
         }
     }
+
+    private fun adapter(event: AnActionEvent, project: com.intellij.openapi.project.Project) =
+        ProblemsViewAdapter(project, event.getData(InspectionResultsView.DATA_KEY))
 }
 
 class CopyProblemAction : CopyProblemsAction() {

@@ -4,7 +4,7 @@
     <name>CopyProblems</name>
     <vendor>trethore</vendor>
     <description><![CDATA[
-        <p>Copy problems from IntelliJ IDEA's Problems tool window with their file, line, column, and severity.</p>
+        <p>Copy problems from IntelliJ IDEA's Problems and Code Analysis tool windows with their file, line, column, and severity.</p>
     ]]></description>
 
     <depends>com.intellij.modules.lang</depends>
@@ -33,6 +33,7 @@
                     text="Copy Problems at Minimum Severity"/>
             <add-to-group group-id="ProblemsView.ToolWindow.TreePopup" anchor="last"/>
             <add-to-group group-id="ProblemsView.Frontend.TreePopup" anchor="last"/>
+            <add-to-group group-id="InspectionToolWindow.TreePopup" anchor="last"/>
         </group>
     </actions>
 </idea-plugin>
