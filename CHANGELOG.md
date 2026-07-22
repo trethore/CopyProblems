@@ -4,4 +4,6 @@
 
 ## [Unreleased]
 ### Added
-- Initial scaffold created from [IntelliJ Platform Plugin Template](https://github.com/JetBrains/intellij-platform-plugin-template)
+- Problems tool window context-menu actions for copying one problem, a selected node, or all visible problems.
+- Configurable minimum-severity copying from Settings | Tools | CopyProblems.
+- Clipboard output containing project-relative file paths, line, column, severity, and message.
