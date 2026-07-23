@@ -4,7 +4,7 @@
     <name>CopyProblems</name>
     <vendor>trethore</vendor>
     <description><![CDATA[
-        <p>Copy problems from IntelliJ IDEA's Problems and Code Analysis tool windows with their file, line, column, and severity.</p>
+        <p>Copy problems from IntelliJ IDEA's Problems window with their file, line, column, and severity.</p>
     ]]></description>
 
     <depends>com.intellij.modules.lang</depends>

@@ -3,6 +3,7 @@
 # CopyProblems Changelog
 
 ## [Unreleased]
+
 ### Added
 - Problems tool window context-menu actions for copying one problem, a selected node, or all visible problems.
 - Code Analysis tool window support for the same copy actions.
