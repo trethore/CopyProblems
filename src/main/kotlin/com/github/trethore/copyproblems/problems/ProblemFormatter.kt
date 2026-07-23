@@ -1,22 +1,34 @@
 package com.github.trethore.copyproblems.problems
 
 object ProblemFormatter {
-    fun format(problems: Collection<CopyableProblem>): String =
-        problems.joinToString(separator = "\n", transform = ::format)
+    const val DEFAULT_TEMPLATE = "{{path}} {{line}}:{{col}} [{{level}}] {{desc}}"
+    val SUPPORTED_VARIABLES = listOf("path", "line", "col", "level", "desc")
 
-    fun format(problem: CopyableProblem): String = buildString {
-        problem.path?.let { path ->
-            append(path)
-            problem.line?.let { line ->
-                append(':').append(line)
-                problem.column?.let { column -> append(':').append(column) }
+    private val variablePattern = Regex("\\{\\{(${SUPPORTED_VARIABLES.joinToString("|")})}}")
+
+    fun format(
+        problems: Collection<CopyableProblem>,
+        template: String = DEFAULT_TEMPLATE,
+    ): String = problems.joinToString(separator = "\n") { format(it, template) }
+
+    fun format(
+        problem: CopyableProblem,
+        template: String = DEFAULT_TEMPLATE,
+    ): String {
+        var normalizedMessage: String? = null
+        return variablePattern.replace(template) { match ->
+            when (match.groupValues[1]) {
+                "path" -> problem.path.orEmpty()
+                "line" -> problem.line?.toString().orEmpty()
+                "col" -> problem.column?.toString().orEmpty()
+                "level" -> problem.severity.orEmpty()
+                "desc" -> normalizedMessage ?: normalizeMessage(problem.message).also {
+                    normalizedMessage = it
+                }
+                else -> match.value
             }
-            append(' ')
-        }
-
-        problem.severity?.let { append('[').append(it).append("] ") }
-        append(normalizeMessage(problem.message))
-    }.trim()
+        }.trim()
+    }
 
     private fun normalizeMessage(message: String): String = message
         .replace(Regex("(?i)<br\\s*/?>"), " ")

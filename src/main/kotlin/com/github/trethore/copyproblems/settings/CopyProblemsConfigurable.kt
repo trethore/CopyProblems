@@ -1,5 +1,6 @@
 package com.github.trethore.copyproblems.settings
 
+import com.github.trethore.copyproblems.problems.ProblemFormatter
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.ui.ComboBox
 import java.awt.FlowLayout
@@ -10,9 +11,11 @@ import java.awt.Insets
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
+import javax.swing.JTextField
 
 class CopyProblemsConfigurable : Configurable {
     private var minimumSeverityComboBox: ComboBox<MinimumSeverity>? = null
+    private var problemTemplateField: JTextField? = null
 
     override fun getDisplayName() = "CopyProblems"
 
@@ -50,8 +53,33 @@ class CopyProblemsConfigurable : Configurable {
             insets = Insets(0, 0, 0, 0)
         })
 
-        add(JPanel(), constraints.apply {
+        add(JLabel("Choose how copied problems are formatted").apply {
+            font = font.deriveFont(Font.BOLD, font.size2D * 1.15f)
+        }, constraints.apply {
             gridy = 3
+            insets = Insets(24, 0, 8, 0)
+        })
+
+        add(JPanel(FlowLayout(FlowLayout.LEFT, 0, 0)).apply {
+            add(JLabel("Template:").apply {
+                border = javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 8)
+            })
+            add(JTextField(ProblemFormatter.DEFAULT_TEMPLATE, 45).also {
+                problemTemplateField = it
+            })
+        }, constraints.apply {
+            gridy = 4
+            insets = Insets(0, 0, 4, 0)
+        })
+
+        val availableVariables = ProblemFormatter.SUPPORTED_VARIABLES.joinToString { "{{$it}}" }
+        add(JLabel("Available variables: $availableVariables"), constraints.apply {
+            gridy = 5
+            insets = Insets(0, 0, 0, 0)
+        })
+
+        add(JPanel(), constraints.apply {
+            gridy = 6
             weighty = 1.0
             fill = GridBagConstraints.BOTH
         })
@@ -59,19 +87,27 @@ class CopyProblemsConfigurable : Configurable {
         reset()
     }
 
-    override fun isModified(): Boolean =
-        minimumSeverityComboBox?.selectedItem != CopyProblemsSettings.getInstance().minimumSeverity
+    override fun isModified(): Boolean {
+        val settings = CopyProblemsSettings.getInstance()
+        return minimumSeverityComboBox?.selectedItem != settings.minimumSeverity ||
+            problemTemplateField?.text != settings.problemTemplate
+    }
 
     override fun apply() {
+        val settings = CopyProblemsSettings.getInstance()
         val selected = minimumSeverityComboBox?.selectedItem as? MinimumSeverity ?: return
-        CopyProblemsSettings.getInstance().minimumSeverity = selected
+        settings.minimumSeverity = selected
+        settings.problemTemplate = problemTemplateField?.text ?: ProblemFormatter.DEFAULT_TEMPLATE
     }
 
     override fun reset() {
-        minimumSeverityComboBox?.selectedItem = CopyProblemsSettings.getInstance().minimumSeverity
+        val settings = CopyProblemsSettings.getInstance()
+        minimumSeverityComboBox?.selectedItem = settings.minimumSeverity
+        problemTemplateField?.text = settings.problemTemplate
     }
 
     override fun disposeUIResources() {
         minimumSeverityComboBox = null
+        problemTemplateField = null
     }
 }

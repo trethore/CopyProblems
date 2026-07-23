@@ -15,7 +15,7 @@ class ProblemFormatterTest {
         )
 
         assertEquals(
-            "src/Foo.kt:12:18 [ERROR] Unresolved reference: bar",
+            "src/Foo.kt 12:18 [ERROR] Unresolved reference: bar",
             ProblemFormatter.format(problem),
         )
     }
@@ -31,7 +31,7 @@ class ProblemFormatterTest {
         )
 
         assertEquals(
-            "src/Foo.kt:3 [WARNING] First line second line",
+            "src/Foo.kt 3: [WARNING] First line second line",
             ProblemFormatter.format(problem),
         )
     }
@@ -47,7 +47,7 @@ class ProblemFormatterTest {
         )
 
         assertEquals(
-            "src/Foo.kt:3:2 [ERROR] Expected <expression> but found nothing",
+            "src/Foo.kt 3:2 [ERROR] Expected <expression> but found nothing",
             ProblemFormatter.format(problem),
         )
     }
@@ -62,7 +62,7 @@ class ProblemFormatterTest {
             message = "Project problem",
         )
 
-        assertEquals("Project problem", ProblemFormatter.format(problem))
+        assertEquals(": [] Project problem", ProblemFormatter.format(problem))
     }
 
     @Test
@@ -73,8 +73,37 @@ class ProblemFormatterTest {
         )
 
         assertEquals(
-            "A.kt:1:2 [ERROR] First\nB.kt:3:4 [WARNING] Second",
+            "A.kt 1:2 [ERROR] First\nB.kt 3:4 [WARNING] Second",
             ProblemFormatter.format(problems),
+        )
+    }
+
+    @Test
+    fun `formats a problem with a custom template`() {
+        val problem = CopyableProblem(
+            path = "src/Foo.kt",
+            line = 12,
+            column = 18,
+            severity = "ERROR",
+            message = "Unresolved reference: bar",
+        )
+
+        assertEquals(
+            "ERROR: Unresolved reference: bar (src/Foo.kt at 12:18)",
+            ProblemFormatter.format(
+                problem,
+                "{{level}}: {{desc}} ({{path}} at {{line}}:{{col}})",
+            ),
+        )
+    }
+
+    @Test
+    fun `allows fields to be omitted from a custom template`() {
+        val problem = CopyableProblem("Foo.kt", 1, 2, "WARNING", "Unused value")
+
+        assertEquals(
+            "Unused value",
+            ProblemFormatter.format(problem, "{{desc}}"),
         )
     }
 }

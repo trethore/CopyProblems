@@ -23,7 +23,11 @@ abstract class CopyProblemsAction : DumbAwareAction() {
 
     override fun actionPerformed(event: AnActionEvent) {
         val project = event.project ?: return
-        val text = ProblemFormatter.format(problems(adapter(event, project)))
+        val settings = CopyProblemsSettings.getInstance()
+        val text = ProblemFormatter.format(
+            problems(adapter(event, project)),
+            settings.problemTemplate,
+        )
         if (text.isNotEmpty()) {
             CopyPasteManager.copyTextToClipboard(text)
         }
