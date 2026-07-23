@@ -30,6 +30,7 @@ class ProblemsViewAdapter(
             codeAnalysisView?.let(CodeAnalysisViewBridge::selectedNodes).orEmpty()
         }
     private val isCodeAnalysis = codeAnalysisView != null || codeAnalysisSelection.isNotEmpty()
+    private val problemsSelection = selectedItems.filterIsInstance<Node>()
 
     private val panel
         get() = ProblemsView.getSelectedPanel(project)
@@ -39,6 +40,12 @@ class ProblemsViewAdapter(
             return codeAnalysisSelection
                 .filter(CodeAnalysisViewBridge::isProblemNode)
                 .map(::toCodeAnalysisProblem)
+        }
+
+        if (problemsSelection.isNotEmpty()) {
+            return problemsSelection
+                .filter(ProblemsViewBridge::isProblemNode)
+                .map(::toCopyableProblem)
         }
 
         return panel?.tree?.selectionPaths
@@ -53,6 +60,10 @@ class ProblemsViewAdapter(
             return collectCodeAnalysis(codeAnalysisSelection)
         }
 
+        if (problemsSelection.isNotEmpty()) {
+            return collect(problemsSelection)
+        }
+
         return collect(panel?.tree?.selectionPaths.orEmpty().mapNotNull(::nodeFrom))
     }
 
@@ -61,6 +72,11 @@ class ProblemsViewAdapter(
             val root = codeAnalysisView?.let(CodeAnalysisViewBridge::root)
                 ?: codeAnalysisSelection.firstOrNull()?.let(CodeAnalysisViewBridge::rootFrom)
             return root?.let { collectCodeAnalysis(listOf(it)) }.orEmpty()
+        }
+
+        problemsSelection.firstOrNull()?.let { selected ->
+            val root = selected.getPath().path.firstOrNull() as? Node
+            return root?.let { collect(listOf(it)) }.orEmpty()
         }
 
         val root = panel?.treeModel?.root ?: return emptyList()
