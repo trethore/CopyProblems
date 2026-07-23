@@ -6,6 +6,10 @@ plugins {
     id("org.jetbrains.changelog")
 }
 
+kotlin {
+    jvmToolchain(25)
+}
+
 dependencies {
     testImplementation(libs.junit)
 

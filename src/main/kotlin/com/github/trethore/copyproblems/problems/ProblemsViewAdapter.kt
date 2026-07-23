@@ -18,34 +18,39 @@ import javax.swing.tree.TreePath
 
 class ProblemsViewAdapter(
     private val project: Project,
-    codeAnalysisView: Any? = null,
-    contextComponent: Component? = null,
+    private val suppliedCodeAnalysisView: Any? = null,
+    private val contextComponent: Component? = null,
     selectedItems: Array<out Any> = emptyArray(),
 ) {
-    private val codeAnalysisView = codeAnalysisView
-        ?: contextComponent?.let(CodeAnalysisViewBridge::findSource)
-    private val codeAnalysisSelection = selectedItems
-        .filter(CodeAnalysisViewBridge::isTreeNode)
-        .ifEmpty {
-            codeAnalysisView?.let(CodeAnalysisViewBridge::selectedNodes).orEmpty()
-        }
-    private val isCodeAnalysis = codeAnalysisView != null || codeAnalysisSelection.isNotEmpty()
     private val problemsSelection = selectedItems.filterIsInstance<Node>()
+    private val codeAnalysisView by lazy {
+        suppliedCodeAnalysisView ?: contextComponent?.let(CodeAnalysisViewBridge::findSource)
+    }
+    private val codeAnalysisSelection by lazy {
+        selectedItems
+            .filter(CodeAnalysisViewBridge::isTreeNode)
+            .ifEmpty {
+                codeAnalysisView?.let(CodeAnalysisViewBridge::selectedNodes).orEmpty()
+            }
+    }
+    private val isCodeAnalysis by lazy {
+        codeAnalysisView != null || codeAnalysisSelection.isNotEmpty()
+    }
 
     private val panel
         get() = ProblemsView.getSelectedPanel(project)
 
     fun selectedProblem(): List<CopyableProblem> {
-        if (isCodeAnalysis) {
-            return codeAnalysisSelection
-                .filter(CodeAnalysisViewBridge::isProblemNode)
-                .map(::toCodeAnalysisProblem)
-        }
-
         if (problemsSelection.isNotEmpty()) {
             return problemsSelection
                 .filter(ProblemsViewBridge::isProblemNode)
                 .map(::toCopyableProblem)
+        }
+
+        if (isCodeAnalysis) {
+            return codeAnalysisSelection
+                .filter(CodeAnalysisViewBridge::isProblemNode)
+                .map(::toCodeAnalysisProblem)
         }
 
         return panel?.tree?.selectionPaths
@@ -56,27 +61,27 @@ class ProblemsViewAdapter(
     }
 
     fun problemsInSelection(): List<CopyableProblem> {
-        if (isCodeAnalysis) {
-            return collectCodeAnalysis(codeAnalysisSelection)
-        }
-
         if (problemsSelection.isNotEmpty()) {
             return collect(problemsSelection)
+        }
+
+        if (isCodeAnalysis) {
+            return collectCodeAnalysis(codeAnalysisSelection)
         }
 
         return collect(panel?.tree?.selectionPaths.orEmpty().mapNotNull(::nodeFrom))
     }
 
     fun allVisibleProblems(): List<CopyableProblem> {
+        problemsSelection.firstOrNull()?.let { selected ->
+            val root = selected.getPath().path.firstOrNull() as? Node
+            return root?.let { collect(listOf(it)) }.orEmpty()
+        }
+
         if (isCodeAnalysis) {
             val root = codeAnalysisView?.let(CodeAnalysisViewBridge::root)
                 ?: codeAnalysisSelection.firstOrNull()?.let(CodeAnalysisViewBridge::rootFrom)
             return root?.let { collectCodeAnalysis(listOf(it)) }.orEmpty()
-        }
-
-        problemsSelection.firstOrNull()?.let { selected ->
-            val root = selected.getPath().path.firstOrNull() as? Node
-            return root?.let { collect(listOf(it)) }.orEmpty()
         }
 
         val root = panel?.treeModel?.root ?: return emptyList()

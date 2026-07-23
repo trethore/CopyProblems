@@ -18,8 +18,9 @@ abstract class CopyProblemsAction : DumbAwareAction() {
 
     override fun update(event: AnActionEvent) {
         val project = event.project
-        val available = project != null && problems(adapter(event, project)).isNotEmpty()
-        event.presentation.isEnabledAndVisible = available
+        event.presentation.isVisible = project != null
+        event.presentation.isEnabled =
+            project != null && problems(adapter(event, project)).isNotEmpty()
     }
 
     override fun actionPerformed(event: AnActionEvent) {
@@ -33,7 +34,7 @@ abstract class CopyProblemsAction : DumbAwareAction() {
     private fun adapter(event: AnActionEvent, project: com.intellij.openapi.project.Project) =
         ProblemsViewAdapter(
             project = project,
-            codeAnalysisView = event.getData(InspectionResultsView.DATA_KEY),
+            suppliedCodeAnalysisView = event.getData(InspectionResultsView.DATA_KEY),
             contextComponent = event.getData(PlatformCoreDataKeys.CONTEXT_COMPONENT),
             selectedItems = event.getData(PlatformCoreDataKeys.SELECTED_ITEMS).orEmpty(),
         )
