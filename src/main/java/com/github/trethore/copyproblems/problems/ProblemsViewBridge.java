@@ -86,7 +86,7 @@ final class ProblemsViewBridge {
         try {
             Object value = target.getClass().getMethod(methodName).invoke(target);
             return type.isInstance(value) ? type.cast(value) : fallback;
-        } catch (ReflectiveOperationException exception) {
+        } catch (ReflectiveOperationException _) {
             return fallback;
         }
     }

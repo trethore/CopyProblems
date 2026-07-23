@@ -17,10 +17,8 @@ abstract class CopyProblemsAction : DumbAwareAction() {
     override fun getActionUpdateThread() = ActionUpdateThread.EDT
 
     override fun update(event: AnActionEvent) {
-        val project = event.project
-        event.presentation.isVisible = project != null
-        event.presentation.isEnabled =
-            project != null && problems(adapter(event, project)).isNotEmpty()
+        // Defer tree traversal until the user invokes an action.
+        event.presentation.isEnabledAndVisible = event.project != null
     }
 
     override fun actionPerformed(event: AnActionEvent) {
@@ -36,7 +34,10 @@ abstract class CopyProblemsAction : DumbAwareAction() {
             project = project,
             suppliedCodeAnalysisView = event.getData(InspectionResultsView.DATA_KEY),
             contextComponent = event.getData(PlatformCoreDataKeys.CONTEXT_COMPONENT),
-            selectedItems = event.getData(PlatformCoreDataKeys.SELECTED_ITEMS).orEmpty(),
+            selectedItems = event.getData(PlatformCoreDataKeys.SELECTED_ITEMS)
+                ?: event.getData(PlatformCoreDataKeys.SELECTED_ITEM)
+                    ?.let { arrayOf(it) }
+                ?: emptyArray(),
         )
 }
 

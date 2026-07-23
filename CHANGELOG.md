@@ -8,3 +8,6 @@
 - Code Analysis tool window support for the same copy actions.
 - Configurable minimum-severity copying from Settings | Tools | CopyProblems.
 - Clipboard output containing project-relative file paths, line, column, severity, and message.
+
+### Fixed
+- Copy actions now appear in the VCS Code Analysis results popup.

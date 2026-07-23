@@ -5,6 +5,8 @@ import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.codeInspection.ProblemDescriptor
 import com.intellij.codeInspection.reference.RefElement
 import com.intellij.codeInsight.daemon.impl.SeverityRegistrar
+import com.intellij.ide.errorTreeView.ErrorTreeElement
+import com.intellij.ide.errorTreeView.NewErrorTreeViewPanel
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.lang.injection.InjectedLanguageManager
 import com.intellij.openapi.project.Project
@@ -36,11 +38,20 @@ class ProblemsViewAdapter(
     private val isCodeAnalysis by lazy {
         codeAnalysisView != null || codeAnalysisSelection.isNotEmpty()
     }
+    private val codeAnalysisErrorPanel by lazy {
+        CodeAnalysisErrorTreeAdapter.findPanel(contextComponent)
+    }
 
     private val panel
         get() = ProblemsView.getSelectedPanel(project)
 
     fun selectedProblem(): List<CopyableProblem> {
+        codeAnalysisErrorPanel?.let { panel ->
+            return CodeAnalysisErrorTreeAdapter.selectedElements(panel)
+                .filter(CodeAnalysisErrorTreeAdapter::isProblem)
+                .map { CodeAnalysisErrorTreeAdapter.toCopyableProblem(it, ::displayPath) }
+        }
+
         if (problemsSelection.isNotEmpty()) {
             return problemsSelection
                 .filter(ProblemsViewBridge::isProblemNode)
@@ -61,6 +72,13 @@ class ProblemsViewAdapter(
     }
 
     fun problemsInSelection(): List<CopyableProblem> {
+        codeAnalysisErrorPanel?.let { panel ->
+            return collectCodeAnalysisErrorTree(
+                panel,
+                CodeAnalysisErrorTreeAdapter.selectedElements(panel),
+            )
+        }
+
         if (problemsSelection.isNotEmpty()) {
             return collect(problemsSelection)
         }
@@ -73,6 +91,13 @@ class ProblemsViewAdapter(
     }
 
     fun allVisibleProblems(): List<CopyableProblem> {
+        codeAnalysisErrorPanel?.let { panel ->
+            return collectCodeAnalysisErrorTree(
+                panel,
+                listOf(CodeAnalysisErrorTreeAdapter.root(panel)),
+            )
+        }
+
         problemsSelection.firstOrNull()?.let { selected ->
             val root = selected.getPath().path.firstOrNull() as? Node
             return root?.let { collect(listOf(it)) }.orEmpty()
@@ -111,6 +136,26 @@ class ProblemsViewAdapter(
         }
 
         nodes.forEach(::visit)
+        return result
+    }
+
+    private fun collectCodeAnalysisErrorTree(
+        panel: NewErrorTreeViewPanel,
+        elements: Collection<ErrorTreeElement>,
+    ): List<CopyableProblem> {
+        val result = mutableListOf<CopyableProblem>()
+
+        fun visit(element: ErrorTreeElement) {
+            if (CodeAnalysisErrorTreeAdapter.isProblem(element)) {
+                result += CodeAnalysisErrorTreeAdapter.toCopyableProblem(
+                    element,
+                    ::displayPath,
+                )
+            }
+            CodeAnalysisErrorTreeAdapter.children(panel, element).forEach(::visit)
+        }
+
+        elements.forEach(::visit)
         return result
     }
 

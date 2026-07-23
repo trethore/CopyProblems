@@ -14,6 +14,7 @@
                                  displayName="CopyProblems"
                                  parentId="tools"
                                  instance="com.github.trethore.copyproblems.settings.CopyProblemsConfigurable"/>
+        <postStartupActivity implementation="com.github.trethore.copyproblems.actions.CodeAnalysisPopupActivity"/>
     </extensions>
 
     <actions>
