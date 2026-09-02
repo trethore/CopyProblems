@@ -2,11 +2,11 @@
 
 # Source files
 *.java text eol=lf
-*.kt  text eol=lf
-*.kts text eol=lf
+*.kt   text eol=lf
+*.kts  text eol=lf
 
 # Windows scripts
-*.bat text eol=crlf
+*.bat  text eol=crlf
 
 # Binary files
-*.jar binary
+*.jar  binary
