@@ -19,3 +19,9 @@ dependencies {
         testFramework(TestFrameworkType.Platform)
     }
 }
+
+intellijPlatform {
+    publishing {
+        token = providers.environmentVariable("PUBLISH_TOKEN")
+    }
+}
